@@ -1,2 +1,2 @@
 # intzavbot
-Intellectual Zavalinka (The Fictionary Game) multi-platform chatbot
+Intellectual Zavalinka (The Fictionary Game) Telegram bot
