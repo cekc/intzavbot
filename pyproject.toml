@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "intzavbot"
+version = "0.1.0"
+description = "Intellectual Zavalinka (The Fictionary Game) Telegram bot"
+authors = ["Mike Zozu <quartermind.ru@gmail.com>"]
+license = "MIT"
+packages = [
+    { include = "intzavbot", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+aiogram = "^2.13"
+click = "^8.0.1"
+SQLAlchemy = "^1.4.19"
+asyncpg = "^0.23.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.4"
+
+[tool.poetry.scripts]
+intzavbot = "intzavbot.__main__:main"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
