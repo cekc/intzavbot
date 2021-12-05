@@ -9,15 +9,15 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.8"
 aiogram = "^2.13"
 click = "^8.0.1"
 SQLAlchemy = "^1.4.20"
 asyncpg = "^0.23.0"
-pyahocorasick = "^1.4.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
+aiosqlite = "^0.17.0"
 
 [tool.poetry.scripts]
 intzavbot = "intzavbot.__main__:main"

@@ -1,7 +1,9 @@
 from enum import auto
+from typing import AsyncGenerator
 
-from sqlalchemy import Boolean, Column, Enum, Integer, ForeignKey, String
-from sqlalchemy.orm import backref, declarative_base, deferred, relationship
+from sqlalchemy import Boolean, Column, Enum, Integer, ForeignKey, select, String
+from sqlalchemy.ext.asyncio.session import AsyncSession
+from sqlalchemy.orm import backref, declarative_base, deferred, foreign, relationship
 
 from intzavbot.utils import StrEnum
 
@@ -14,18 +16,21 @@ MAX_PROLOG_LENGTH = 300
 MAX_GAME_TEXT_LENGTH = 300
 
 
-class UserState(StrEnum):
+class PlayerState(StrEnum):
     DEFAULT = auto()
+    TYPING_NICKNAME = auto()
     TYPING_TAG_FOR_GAME_TO_CREATE = auto()
     TYPING_TAG_FOR_GAME_TO_JOIN = auto()
-    TYPING_NICKNAME = auto()
-    WAITING_FOR_HOST = auto()
+    WAITING_FOR_HOST_TO_APPEAR = auto()
+    WAITING_FOR_HOST_TO_TYPE_PROLOG = auto()
+    TYPING_PROLOG = auto()
     TYPING_GAME_TEXT = auto()
+    WAITING_FOR_VOTING_FINISH = auto()
     VOTING = auto()
 
 
-class User(Base):
-    __tablename__ = "users"
+class Player(Base):
+    __tablename__ = "players"
 
     id = Column(Integer, primary_key=True)
     nickname = Column(String(MAX_NICKNAME_LENGTH))
@@ -34,15 +39,21 @@ class User(Base):
 
     is_host = Column(Boolean)
     text = deferred(Column(String(MAX_GAME_TEXT_LENGTH)))
-    for_whom_votes_id = Column(Integer, ForeignKey("users.id"))
+    for_whom_votes_id = Column(Integer, ForeignKey("players.id"))
 
     state = Column(
-        Enum(UserState, values_callable=lambda x: [e.value for e in x]),
+        Enum(PlayerState, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
-        default=UserState.DEFAULT
+        default=PlayerState.DEFAULT
     )
 
-    voted_by = relationship("User", backref=backref("for_whom_votes", remote_side=[id]))
+    voted_by = relationship("Player", backref=backref("for_whom_votes", remote_side=[id]))
+
+    async def other_players(self, session: AsyncSession) -> "AsyncGenerator[Player]":
+        all_players = (await session.stream(select(Player).filter_by(game_id=self.game_id))).scalars()
+        async for player in all_players:
+            if player.id != self.id:
+                yield player
 
 
 class GameKind(StrEnum):
@@ -58,4 +69,4 @@ class Game(Base):
     kind = Column(Enum(GameKind), nullable=False)
     prolog = Column(String(MAX_PROLOG_LENGTH))
 
-    users = relationship("User", backref=backref("game"))
+    players = relationship("Player", backref=backref("game"))

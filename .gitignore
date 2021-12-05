@@ -139,3 +139,8 @@ cython_debug/
 
 # IDE
 .vscode/
+
+# sqlite databases
+*.db
+*.sqlite
+*.sqlite3
